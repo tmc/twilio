@@ -82,15 +82,16 @@ func (r *Response) Gather(structs ...interface{}) error {
 }
 
 // Send sends xml encoded response to writer
-func (r Response) Send(w io.Writer) {
+func (r Response) Send(w io.Writer) (err error) {
 	enc := xml.NewEncoder(w)
 	enc.Indent("  ", "   ")
 
 	fmt.Fprintf(w, "%s", xml.Header)
 	if err := enc.Encode(r); err != nil {
-		fmt.Printf("Error: %v\n", err)
+		return err
 	}
 	fmt.Fprintf(w, "\n")
+	return err
 }
 
 // String returns a formatted xml response
