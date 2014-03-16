@@ -40,12 +40,12 @@ type ExceptionResponse struct {
 }
 
 type Page struct {
-	Page            string `xml:"page,attr"`
-	NumPages        string `xml:"numpages,attr"`
-	PageSize        string `xml:"pagesize,attr"`
-	Total           string `xml:"total,attr"`
-	Start           string `xml:"start,attr"`
-	End             string `xml:"end,attr"`
+	Page            int    `xml:"page,attr"`
+	NumPages        int    `xml:"numpages,attr"`
+	PageSize        int    `xml:"pagesize,attr"`
+	Total           int    `xml:"total,attr"`
+	Start           int    `xml:"start,attr"`
+	End             int    `xml:"end,attr"`
 	Uri             string `xml:"uri,attr"`
 	FirstPageUri    string `xml:"firstpageuri,attr"`
 	PreviousPageUri string `xml:"previouspageuri,attr"`
