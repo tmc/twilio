@@ -159,7 +159,7 @@ type OutgoingCallerId struct {
 
 type UpdateOutgoingCallerId struct {
 	Sid          string
-	FriendlyName string
+	FriendlyName string `FriendlyName=`
 }
 
 type DeleteOutgoingCallerId struct {
