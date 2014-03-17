@@ -3,27 +3,30 @@ package twirest
 // TwilioResponse holds one possible resource/response depending on type of
 // request plus a Status struct.
 type TwilioResponse struct {
-	Accounts      *AccountsResponse      `xml:"Accounts"`
-	Account       *AccountResponse       `xml:"Account"`
-	Calls         *CallsResponse         `xml:"Calls"`
-	Call          *CallResponse          `xml:"Call"`
-	Conferences   *ConferencesResponse   `xml:"Conferences"`
-	Conference    *ConferenceResponse    `xml:"Conference"`
-	Exception     *ExceptionResponse     `xml:"RestException"`
-	Messages      *MessagesResponse      `xml:"Messages"`
-	Message       *MessageResponse       `xml:"Message"`
-	Notifications *NotificationsResponse `xml:"Notifications"`
-	Notification  *NotificationResponse  `xml:"Notification"`
-	Participants  *ParticipantsResponse  `xml:"Participants"`
-	Participant   *ParticipantResponse   `xml:"Participant"`
-	Recordings    *RecordingsResponse    `xml:"Recordings"`
-	Recording     *RecordingResponse     `xml:"Recording"`
-	Queues        *QueuesResponse        `xml:"Queues"`
-	Queue         *QueueResponse         `xml:"Queue"`
-	QueueMembers  *QueueMembersResponse  `xml:"QueueMembers"`
-	QueueMember   *QueueMemberResponse   `xml:"QueueMember"`
-	UsageRecords  *UsageRecordsResponse  `xml:"UsageRecords"`
-	Status        ResponseStatus
+	Accounts          *AccountsResponse          `xml:"Accounts"`
+	Account           *AccountResponse           `xml:"Account"`
+	Calls             *CallsResponse             `xml:"Calls"`
+	Call              *CallResponse              `xml:"Call"`
+	Conferences       *ConferencesResponse       `xml:"Conferences"`
+	Conference        *ConferenceResponse        `xml:"Conference"`
+	Exception         *ExceptionResponse         `xml:"RestException"`
+	Messages          *MessagesResponse          `xml:"Messages"`
+	Message           *MessageResponse           `xml:"Message"`
+	Notifications     *NotificationsResponse     `xml:"Notifications"`
+	Notification      *NotificationResponse      `xml:"Notification"`
+	OutgoingCallerIds *OutgoingCallerIdsResponse `xml:"OutgoingCallerIds"`
+	OutgoingCallerId  *OutgoingCallerIdResponse  `xml:"OutgoingCallerId"`
+	Participants      *ParticipantsResponse      `xml:"Participants"`
+	Participant       *ParticipantResponse       `xml:"Participant"`
+	Recordings        *RecordingsResponse        `xml:"Recordings"`
+	Recording         *RecordingResponse         `xml:"Recording"`
+	Queues            *QueuesResponse            `xml:"Queues"`
+	Queue             *QueueResponse             `xml:"Queue"`
+	QueueMembers      *QueueMembersResponse      `xml:"QueueMembers"`
+	QueueMember       *QueueMemberResponse       `xml:"QueueMember"`
+	UsageRecords      *UsageRecordsResponse      `xml:"UsageRecords"`
+	ValidationRequest *ValidationRequestResponse `xml:"ValidationRequest"`
+	Status            ResponseStatus
 }
 
 type ResponseStatus struct {
@@ -40,12 +43,12 @@ type ExceptionResponse struct {
 }
 
 type Page struct {
-	Page            int    `xml:"page,attr"`
-	NumPages        int    `xml:"numpages,attr"`
-	PageSize        int    `xml:"pagesize,attr"`
-	Total           int    `xml:"total,attr"`
-	Start           int    `xml:"start,attr"`
-	End             int    `xml:"end,attr"`
+	Page            uint   `xml:"page,attr"`
+	NumPages        uint   `xml:"numpages,attr"`
+	PageSize        uint   `xml:"pagesize,attr"`
+	Total           uint   `xml:"total,attr"`
+	Start           uint   `xml:"start,attr"`
+	End             uint   `xml:"end,attr"`
 	Uri             string `xml:"uri,attr"`
 	FirstPageUri    string `xml:"firstpageuri,attr"`
 	PreviousPageUri string `xml:"previouspageuri,attr"`
@@ -184,6 +187,30 @@ type NotificationResponse struct {
 	RequestVariables string
 	ResponseHeaders  string
 	ResponseBody     string
+}
+
+type OutgoingCallerIdsResponse struct {
+	Page
+	OutgoingCallerId []OutgoingCallerIdResponse
+}
+
+type OutgoingCallerIdResponse struct {
+	Sid          string
+	DateCreated  string
+	DateUpdated  string
+	FriendlyName string
+	AccountSid   string
+	PhoneNumber  string
+	Uri          string
+}
+
+// Response from AddOutgoingCallerId
+type ValidationRequestResponse struct {
+	AccountSid     string
+	PhoneNumber    string
+	FriendlyName   string
+	ValidationCode string
+	CallSid        string
 }
 
 type ParticipantsResponse struct {

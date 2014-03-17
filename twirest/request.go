@@ -146,6 +146,35 @@ type DeleteNotification struct {
 	Sid string
 }
 
+// Get outgoing caller IDs
+type OutgoingCallerIds struct {
+	PhoneNumber  string `PhoneNumber=`
+	FriendlyName string `FriendlyName=`
+}
+
+// Get outgoing caller ID
+type OutgoingCallerId struct {
+	Sid string
+}
+
+type UpdateOutgoingCallerId struct {
+	Sid          string
+	FriendlyName string
+}
+
+type DeleteOutgoingCallerId struct {
+	Sid string
+}
+
+type AddOutgoingCallerId struct {
+	PhoneNumber          string `PhoneNumber=`
+	FriendlyName         string `FriendlyName=`
+	CallDelay            string `CallDelay=`
+	Extension            string `Extension=`
+	StatusCallback       string `StatusCallback=`
+	StatusCallbackMethod string `StatusCallbackMethod=`
+}
+
 // List recordings resource
 type Recordings struct {
 	Sid               string `CallSid=`

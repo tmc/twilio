@@ -37,3 +37,46 @@ const (
 	TwiChineseCantonese   = "zh-HK"
 	TwiChineseTaiwanese   = "zh-TW"
 )
+
+// Twilio callback status parameters for: Call End Callback (StatusCallback),
+// Voice Request
+const (
+	TwiCallSid       = "CallSid"
+	TwiAccountSid    = "AccountSid"
+	TwiFrom          = "From"
+	TwiTo            = "To"
+	TwiCallStatus    = "CallStatus"
+	TwiApiVersion    = "ApiVersion"
+	TwiDirection     = "Direction"
+	TwiForwardedFrom = "ForwardedFrom"
+	TwiCallerName    = "CallerName"
+	// Geographic data
+	TwiFromCity    = "FromCity"
+	TwiFromState   = "FromState"
+	TwiFromZip     = "FromZip"
+	TwiFromCountry = "FromCountry"
+	TwiToCity      = "ToCity"
+	TwiToState     = "ToState"
+	TwiToZip       = "ToZip"
+	TwiToCountry   = "Tocountry"
+	//  Status callback
+	TwiCallDuration      = "CallDuration"
+	TwiRecordingUrl      = "RecordingUrl"
+	TwiRecordingSid      = "RecordingSid"
+	TwiRecordingDuration = "RecordingDuration"
+	// Below parameters are included in AddCallerId request response
+	TwiVerificationStatus  = "VerificationStatus"
+	TwiOutgoingCallerIdSid = "OutgoingCallerIdSid"
+)
+
+// Call status
+const (
+	TwiQueued     = "queued"
+	TwiRinging    = "ringing"
+	TwiInProgress = "in-progress"
+	TwiCompleted  = "completed"
+	TwiBusy       = "busy"
+	TwiFailed     = "failed"
+	TwiNoAnswer   = "no-answer"
+	TwiCanceled   = "canceled"
+)

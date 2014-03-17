@@ -136,6 +136,19 @@ func httpRequest(reqStruct interface{}, accSid string) (
 	case DeleteNotification:
 		err = required(reqStruct.Sid)
 		url = url + "/" + accSid + "/Notifications/" + reqStruct.Sid
+	case OutgoingCallerIds:
+		url = url + "/" + accSid + "/OutgoingCallerIds"
+	case OutgoingCallerId:
+		err = required(reqStruct.Sid)
+		url = url + "/" + accSid + "/OutgoingCallerIds/" + reqStruct.Sid
+	case UpdateOutgoingCallerId:
+		err = required(reqStruct.Sid)
+		url = url + "/" + accSid + "/OutgoingCallerIds/" + reqStruct.Sid
+	case DeleteOutgoingCallerId:
+		err = required(reqStruct.Sid)
+		url = url + "/" + accSid + "/OutgoingCallerIds/" + reqStruct.Sid
+	case AddOutgoingCallerId:
+		url = url + "/" + accSid + "/OutgoingCallerIds"
 	case Recordings:
 		url = url + "/" + accSid + "/Recordings"
 	case Recording:
@@ -217,15 +230,16 @@ func httpRequest(reqStruct interface{}, accSid string) (
 		}
 		httpReq, err = http.NewRequest("GET", url, nil)
 	// DELETE query method
-	case DeleteNotification, DeleteRecording, DeleteParticipant,
-		DeleteQueue:
+	case DeleteNotification, DeleteOutgoingCallerId,
+		DeleteRecording, DeleteParticipant, DeleteQueue:
 		if queryStr != "" {
 			url = url + "?" + queryStr
 		}
 		httpReq, err = http.NewRequest("DELETE", url, nil)
 	// POST query method
 	case SendMessage, MakeCall, ModifyCall, CreateQueue, ChangeQueue,
-		DeQueue, UpdateParticipant:
+		DeQueue, UpdateParticipant, UpdateOutgoingCallerId,
+		AddOutgoingCallerId:
 		requestBody := strings.NewReader(queryStr)
 		httpReq, err = http.NewRequest("POST", url, requestBody)
 
@@ -241,7 +255,8 @@ func queryString(reqSt interface{}) (qryStr string) {
 	switch reqSt := reqSt.(type) {
 	default:
 	case SendMessage, Messages, MakeCall, Calls, ModifyCall,
-		Notifications, Recordings, Accounts, UsageRecords, CreateQueue,
+		Notifications, OutgoingCallerIds, Recordings, Accounts,
+		UsageRecords, CreateQueue,
 		ChangeQueue, DeQueue, Conferences, Participants:
 		for i := 0; i < reflect.ValueOf(reqSt).NumField(); i++ {
 			fld := reflect.ValueOf(reqSt).Field(i)
