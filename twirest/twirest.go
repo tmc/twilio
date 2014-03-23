@@ -89,133 +89,84 @@ func exceptionToErr(twir TwilioResponse) (code int, err error) {
 	return
 }
 
-// httpRequest creates a http REST request from the supplied request struct
-// and the account Sid
-func httpRequest(reqStruct interface{}, accSid string) (
-	httpReq *http.Request, err error) {
+func urlString(reqStruct interface{}, accSid string) (url string, err error) {
 
-	url := "https://api.twilio.com/" + ApiVer + "/Accounts"
+	url = "https://api.twilio.com/" + ApiVer + "/Accounts"
+
+	switch reqSt := reqStruct.(type) {
+	default:
+		for i := 0; i < reflect.ValueOf(reqSt).NumField(); i++ {
+			//fld := reflect.ValueOf(reqSt).Field(i)
+			fldType := reflect.ValueOf(reqSt).Type().Field(i).Type
+			fldTag := reflect.ValueOf(reqSt).Type().Field(i).Tag
+			fldName := reflect.ValueOf(reqSt).Type().Field(i).Name
+			fldValue := reflect.ValueOf(reqSt).Field(i).String()
+			//fldIdx := reflect.ValueOf(reqSt).Type().Field(i).Index
+			//fldAnon := reflect.ValueOf(reqSt).Type().Field(i).Anonymous
+			//fmt.Println("**", fldType, fldTag, fldName, fldIdx, fldAnon)
+			if fldType.Name() == "uri" {
+				url = url + "/" + accSid + string(fldTag)
+			}
+			if fldName == "Sid" {
+				err = required(fldValue)
+				url = url + "/" + fldValue
+			}
+		}
+	}
 
 	switch reqStruct := reqStruct.(type) {
 	default:
-		err = fmt.Errorf("invalid type %T in Request", reqStruct)
-	case SendMessage, Messages:
-		url = url + "/" + accSid + "/Messages"
 	case Message:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Messages/" + reqStruct.Sid
 		if reqStruct.Media == true {
 			url = url + "/Media"
 			if reqStruct.MediaSid != "" {
 				url = url + "/" + reqStruct.MediaSid
 			}
 		}
-	case MakeCall, Calls:
-		url = url + "/" + accSid + "/Calls"
 	case Call:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Calls/" + reqStruct.Sid
 		if reqStruct.Recordings == true {
 			url = url + "/Recordings"
 		} else if reqStruct.Notifications == true {
 			url = url + "/Notifications"
 		}
-	case ModifyCall:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Calls/" + reqStruct.Sid
-	case Accounts:
-		url = url
-	case Account:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid
-	case Notifications:
-		url = url + "/" + accSid + "/Notifications"
-	case Notification:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Notifications/" + reqStruct.Sid
-	case DeleteNotification:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Notifications/" + reqStruct.Sid
-	case OutgoingCallerIds:
-		url = url + "/" + accSid + "/OutgoingCallerIds"
-	case OutgoingCallerId:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/OutgoingCallerIds/" + reqStruct.Sid
-	case UpdateOutgoingCallerId:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/OutgoingCallerIds/" + reqStruct.Sid
-	case DeleteOutgoingCallerId:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/OutgoingCallerIds/" + reqStruct.Sid
-	case AddOutgoingCallerId:
-		url = url + "/" + accSid + "/OutgoingCallerIds"
-	case Recordings:
-		url = url + "/" + accSid + "/Recordings"
-	case Recording:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Recordings/" + reqStruct.Sid
-	case DeleteRecording:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Recordings/" + reqStruct.Sid
 	case UsageRecords:
-		url = url + "/" + accSid + "/Usage/Records/" +
-			reqStruct.SubResource
-	case Queues, CreateQueue:
-		url = url + "/" + accSid + "/Queues"
-	case Queue:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Queues/" + reqStruct.Sid
-	case ChangeQueue:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Queues/" + reqStruct.Sid
-	case DeleteQueue:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Queues/" + reqStruct.Sid
-	case QueueMembers:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Queues/" + reqStruct.Sid +
-			"/Members"
+		url = url + "/" + reqStruct.SubResource
 	case QueueMember:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Queues/" + reqStruct.Sid
 		if reqStruct.Front {
 			url = url + "/Members/Front"
 		} else {
-			err = required(reqStruct.Sid, reqStruct.CallSid)
+			err = required(reqStruct.CallSid)
 			url = url + "/Members/" + reqStruct.CallSid
 		}
 	case DeQueue:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Queues/" + reqStruct.Sid +
-			"/Members"
 		if reqStruct.Front {
-			url = url + "/Front"
+			url = url + "/Members/Front"
 		} else {
-			err = required(reqStruct.Sid, reqStruct.CallSid)
-			url = url + "/" + reqStruct.CallSid
+			err = required(reqStruct.CallSid)
+			url = url + "/Members/" + reqStruct.CallSid
 		}
-	case Conferences:
-		url = url + "/" + accSid + "/Conferences"
-	case Conference:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Conferences/" + reqStruct.Sid
 	case Participants:
-		err = required(reqStruct.Sid)
-		url = url + "/" + accSid + "/Conferences/" + reqStruct.Sid +
-			"/Participants"
+		url = url + "/Participants"
 	case Participant:
-		err = required(reqStruct.Sid, reqStruct.CallSid)
-		url = url + "/" + accSid + "/Conferences/" + reqStruct.Sid +
-			"/Participants/" + reqStruct.CallSid
+		err = required(reqStruct.CallSid)
+		url = url + "/Participants/" + reqStruct.CallSid
 	case UpdateParticipant:
-		err = required(reqStruct.Sid, reqStruct.CallSid)
-		url = url + "/" + accSid + "/Conferences/" + reqStruct.Sid +
-			"/Participants/" + reqStruct.CallSid
+		err = required(reqStruct.CallSid)
+		url = url + "/Participants/" + reqStruct.CallSid
 	case DeleteParticipant:
-		err = required(reqStruct.Sid, reqStruct.CallSid)
-		url = url + "/" + accSid + "/Conferences/" + reqStruct.Sid +
-			"/Participants/" + reqStruct.CallSid
+		err = required(reqStruct.CallSid)
+		url = url + "/Participants/" + reqStruct.CallSid
 	}
+	return url, err
+}
+
+// httpRequest creates a http REST request from the supplied request struct
+// and the account Sid
+func httpRequest(reqStruct interface{}, accountSid string) (
+	httpReq *http.Request, err error) {
+
+	url, err := urlString(reqStruct, accountSid)
+
 	if err != nil {
 		return httpReq, err
 	}
