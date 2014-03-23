@@ -94,82 +94,12 @@ func exceptionToErr(twir TwilioResponse) (code int, err error) {
 	return
 }
 
-func urlString(reqStruct interface{}, accSid string) (url string, err error) {
-
-	url = "https://api.twilio.com/" + ApiVer + "/Accounts"
-
-	m := make(map[string][2]string)
-	// workaround, because we can not check multiple types for each case
-	// instead make a map of the fields with the values and/or tags we need
-	switch reqSt := reqStruct.(type) {
-	default:
-		for i := 0; i < reflect.ValueOf(reqSt).NumField(); i++ {
-			fldName := reflect.ValueOf(reqSt).Type().Field(i).Name
-			fldTag := reflect.ValueOf(reqSt).Type().Field(i).Tag
-			fldValue := reflect.ValueOf(reqSt).Field(i).String()
-
-			m[fldName] = [2]string{string(fldTag), fldValue}
-		}
-	}
-	// -------------------------------------------------------------------
-	// Base requests
-	// https://api.twilio.com/2010-04-01/Accounts/{accSid}/{resource}
-	if fld, ok := m["resource"]; ok {
-		url = url + "/" + accSid + fld[tag]
-	}
-	// https://api.twilio.com/2010-04-01/Accounts/{accSid}/{resource}/{Sid}
-	if fld, ok := m["Sid"]; ok {
-		err = required(fld[value])
-		url = url + "/" + fld[value]
-	}
-	// ... Accounts/{accSid}/{resource}/{Sid}/{subresource}
-	if fld, ok := m["subresource"]; ok {
-		url = url + fld[tag]
-	}
-	// ... Accounts/{accSid}/{resource}/{Sid}/{subresource}/{CallSid}
-	if fld, ok := m["CallSid"]; ok && fld[tag] == "" {
-		//err = required(fldValue)
-		url = url + "/" + fld[value]
-	}
-	// -------------------------------------------------------------------
-	// Request cases with additional or optional resources
-	switch reqSt := reqStruct.(type) {
-	default:
-	case Message:
-		if reqSt.Media == true {
-			url = url + "/Media"
-			if reqSt.MediaSid != "" {
-				url = url + "/" + reqSt.MediaSid
-			}
-		}
-	case Call:
-		if reqSt.Recordings == true {
-			url = url + "/Recordings"
-		} else if reqSt.Notifications == true {
-			url = url + "/Notifications"
-		}
-	case UsageRecords:
-		url = url + "/" + reqSt.SubResource
-	case QueueMember:
-		if reqSt.Front && reqSt.CallSid == "" {
-			url = url + "/Front"
-		}
-	case DeQueue:
-		if reqSt.Front && reqSt.CallSid == "" {
-			url = url + "/Front"
-		}
-	}
-
-	return url, err
-}
-
 // httpRequest creates a http REST request from the supplied request struct
 // and the account Sid
 func httpRequest(reqStruct interface{}, accountSid string) (
 	httpReq *http.Request, err error) {
 
 	url, err := urlString(reqStruct, accountSid)
-
 	if err != nil {
 		return httpReq, err
 	}
@@ -208,21 +138,17 @@ func httpRequest(reqStruct interface{}, accountSid string) (
 func queryString(reqSt interface{}) (qryStr string) {
 	switch reqSt := reqSt.(type) {
 	default:
-	case SendMessage, Messages, MakeCall, Calls, ModifyCall,
-		Notifications, OutgoingCallerIds, Recordings, Accounts,
-		UsageRecords, CreateQueue,
-		ChangeQueue, DeQueue, Conferences, Participants:
+	case SendMessage, Messages, MakeCall, Calls, ModifyCall, Accounts,
+		Notifications, OutgoingCallerIds, Recordings, UsageRecords,
+		CreateQueue, ChangeQueue, DeQueue, Conferences, Participants:
 		for i := 0; i < reflect.ValueOf(reqSt).NumField(); i++ {
-			fld := reflect.ValueOf(reqSt).Field(i)
-			//fldName := reflect.ValueOf(reqSt).Type().Field(i).Name
-			fldType := reflect.ValueOf(reqSt).Type().Field(i).Type
-			fldTag := reflect.ValueOf(reqSt).Type().Field(i).Tag
+			fld := reflect.ValueOf(reqSt).Type().Field(i)
+			val := reflect.ValueOf(reqSt).Field(i).String()
 
-			if fldType.Kind() == reflect.String &&
-				string(fldTag) != "" && fld.String() != "" {
-
-				qryStr += string(fldTag) +
-					url.QueryEscape(fld.String()) + "&"
+			if fld.Type.Kind() == reflect.String &&
+				string(fld.Tag) != "" && val != "" {
+				qryStr += string(fld.Tag) +
+					url.QueryEscape(val) + "&"
 			}
 		}
 		// remove the last '&' if we created a query string
@@ -231,6 +157,70 @@ func queryString(reqSt interface{}) (qryStr string) {
 		}
 	}
 	return qryStr
+}
+
+// urlString constructs the REST resource url
+func urlString(reqStruct interface{}, accSid string) (url string, err error) {
+
+	url = "https://api.twilio.com/" + ApiVer + "/Accounts"
+
+	m := make(map[string][2]string)
+	// Map the name of the fields in the struct with the values and tags
+	switch reqSt := reqStruct.(type) {
+	default:
+		for i := 0; i < reflect.ValueOf(reqSt).NumField(); i++ {
+			fld := reflect.ValueOf(reqSt).Type().Field(i)
+			val := reflect.ValueOf(reqSt).Field(i).String()
+
+			m[fld.Name] = [2]string{string(fld.Tag), val}
+		}
+	}
+
+	// Make base resource URL by adding fields if they exists
+	// ... /Accounts/{accSid}/{resource}/{Sid}/{subresource}/{CallSid}
+	if fld, ok := m["resource"]; ok {
+		url = url + "/" + accSid + fld[tag]
+	}
+	if fld, ok := m["Sid"]; ok {
+		err = required(fld[value])
+		url = url + "/" + fld[value]
+	}
+	if fld, ok := m["subresource"]; ok {
+		url = url + fld[tag]
+	}
+	if fld, ok := m["CallSid"]; ok && fld[tag] == "" {
+		url = url + "/" + fld[value]
+	}
+
+	// Request cases with additional/optional resources added
+	switch reqSt := reqStruct.(type) {
+	default:
+	case Message:
+		if reqSt.Media == true {
+			url = url + "/Media"
+			if reqSt.MediaSid != "" {
+				url = url + "/" + reqSt.MediaSid
+			}
+		}
+	case Call:
+		if reqSt.Recordings == true {
+			url = url + "/Recordings"
+		} else if reqSt.Notifications == true {
+			url = url + "/Notifications"
+		}
+	case UsageRecords:
+		url = url + "/" + reqSt.SubResource
+	case QueueMember:
+		if reqSt.Front && reqSt.CallSid == "" {
+			url = url + "/Front"
+		}
+	case DeQueue:
+		if reqSt.Front && reqSt.CallSid == "" {
+			url = url + "/Front"
+		}
+	}
+
+	return url, err
 }
 
 // check that string(s) is(are) not empty, return error otherwise
