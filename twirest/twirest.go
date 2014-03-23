@@ -96,14 +96,11 @@ func urlString(reqStruct interface{}, accSid string) (url string, err error) {
 	switch reqSt := reqStruct.(type) {
 	default:
 		for i := 0; i < reflect.ValueOf(reqSt).NumField(); i++ {
-			//fld := reflect.ValueOf(reqSt).Field(i)
 			fldType := reflect.ValueOf(reqSt).Type().Field(i).Type
 			fldTag := reflect.ValueOf(reqSt).Type().Field(i).Tag
 			fldName := reflect.ValueOf(reqSt).Type().Field(i).Name
 			fldValue := reflect.ValueOf(reqSt).Field(i).String()
-			//fldIdx := reflect.ValueOf(reqSt).Type().Field(i).Index
-			//fldAnon := reflect.ValueOf(reqSt).Type().Field(i).Anonymous
-			//fmt.Println("**", fldType, fldTag, fldName, fldIdx, fldAnon)
+
 			if fldType.Name() == "uri" {
 				url = url + "/" + accSid + string(fldTag)
 			}
@@ -114,48 +111,48 @@ func urlString(reqStruct interface{}, accSid string) (url string, err error) {
 		}
 	}
 
-	switch reqStruct := reqStruct.(type) {
+	switch reqSt := reqStruct.(type) {
 	default:
 	case Message:
-		if reqStruct.Media == true {
+		if reqSt.Media == true {
 			url = url + "/Media"
-			if reqStruct.MediaSid != "" {
-				url = url + "/" + reqStruct.MediaSid
+			if reqSt.MediaSid != "" {
+				url = url + "/" + reqSt.MediaSid
 			}
 		}
 	case Call:
-		if reqStruct.Recordings == true {
+		if reqSt.Recordings == true {
 			url = url + "/Recordings"
-		} else if reqStruct.Notifications == true {
+		} else if reqSt.Notifications == true {
 			url = url + "/Notifications"
 		}
 	case UsageRecords:
-		url = url + "/" + reqStruct.SubResource
+		url = url + "/" + reqSt.SubResource
 	case QueueMember:
-		if reqStruct.Front {
+		if reqSt.Front {
 			url = url + "/Members/Front"
 		} else {
-			err = required(reqStruct.CallSid)
-			url = url + "/Members/" + reqStruct.CallSid
+			err = required(reqSt.CallSid)
+			url = url + "/Members/" + reqSt.CallSid
 		}
 	case DeQueue:
-		if reqStruct.Front {
+		if reqSt.Front {
 			url = url + "/Members/Front"
 		} else {
-			err = required(reqStruct.CallSid)
-			url = url + "/Members/" + reqStruct.CallSid
+			err = required(reqSt.CallSid)
+			url = url + "/Members/" + reqSt.CallSid
 		}
 	case Participants:
 		url = url + "/Participants"
-	case Participant:
-		err = required(reqStruct.CallSid)
-		url = url + "/Participants/" + reqStruct.CallSid
+	case Participant, UpdateParticipant:
+		err = required(reqSt.CallSid)
+		url = url + "/Participants/" + reqSt.CallSid
 	case UpdateParticipant:
-		err = required(reqStruct.CallSid)
-		url = url + "/Participants/" + reqStruct.CallSid
+		err = required(reqSt.CallSid)
+		url = url + "/Participants/" + reqSt.CallSid
 	case DeleteParticipant:
-		err = required(reqStruct.CallSid)
-		url = url + "/Participants/" + reqStruct.CallSid
+		err = required(reqSt.CallSid)
+		url = url + "/Participants/" + reqSt.CallSid
 	}
 	return url, err
 }
