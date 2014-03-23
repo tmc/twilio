@@ -19,6 +19,11 @@ import (
 
 const ApiVer string = "2010-04-01"
 
+const (
+	tag   = 0
+	value = 1
+)
+
 // TwilioClient struct for holding a http client and user credentials
 type TwilioClient struct {
 	httpclient            *http.Client
@@ -93,24 +98,41 @@ func urlString(reqStruct interface{}, accSid string) (url string, err error) {
 
 	url = "https://api.twilio.com/" + ApiVer + "/Accounts"
 
+	m := make(map[string][2]string)
+	// workaround, because we can not check multiple types for each case
+	// instead make a map of the fields with the values and/or tags we need
 	switch reqSt := reqStruct.(type) {
 	default:
 		for i := 0; i < reflect.ValueOf(reqSt).NumField(); i++ {
-			fldType := reflect.ValueOf(reqSt).Type().Field(i).Type
-			fldTag := reflect.ValueOf(reqSt).Type().Field(i).Tag
 			fldName := reflect.ValueOf(reqSt).Type().Field(i).Name
+			fldTag := reflect.ValueOf(reqSt).Type().Field(i).Tag
 			fldValue := reflect.ValueOf(reqSt).Field(i).String()
 
-			if fldType.Name() == "uri" {
-				url = url + "/" + accSid + string(fldTag)
-			}
-			if fldName == "Sid" {
-				err = required(fldValue)
-				url = url + "/" + fldValue
-			}
+			m[fldName] = [2]string{string(fldTag), fldValue}
 		}
 	}
-
+	// -------------------------------------------------------------------
+	// Base requests
+	// https://api.twilio.com/2010-04-01/Accounts/{accSid}/{resource}
+	if fld, ok := m["resource"]; ok {
+		url = url + "/" + accSid + fld[tag]
+	}
+	// https://api.twilio.com/2010-04-01/Accounts/{accSid}/{resource}/{Sid}
+	if fld, ok := m["Sid"]; ok {
+		err = required(fld[value])
+		url = url + "/" + fld[value]
+	}
+	// ... Accounts/{accSid}/{resource}/{Sid}/{subresource}
+	if fld, ok := m["subresource"]; ok {
+		url = url + fld[tag]
+	}
+	// ... Accounts/{accSid}/{resource}/{Sid}/{subresource}/{CallSid}
+	if fld, ok := m["CallSid"]; ok && fld[tag] == "" {
+		//err = required(fldValue)
+		url = url + "/" + fld[value]
+	}
+	// -------------------------------------------------------------------
+	// Request cases with additional or optional resources
 	switch reqSt := reqStruct.(type) {
 	default:
 	case Message:
@@ -129,31 +151,15 @@ func urlString(reqStruct interface{}, accSid string) (url string, err error) {
 	case UsageRecords:
 		url = url + "/" + reqSt.SubResource
 	case QueueMember:
-		if reqSt.Front {
-			url = url + "/Members/Front"
-		} else {
-			err = required(reqSt.CallSid)
-			url = url + "/Members/" + reqSt.CallSid
+		if reqSt.Front && reqSt.CallSid == "" {
+			url = url + "/Front"
 		}
 	case DeQueue:
-		if reqSt.Front {
-			url = url + "/Members/Front"
-		} else {
-			err = required(reqSt.CallSid)
-			url = url + "/Members/" + reqSt.CallSid
+		if reqSt.Front && reqSt.CallSid == "" {
+			url = url + "/Front"
 		}
-	case Participants:
-		url = url + "/Participants"
-	case Participant, UpdateParticipant:
-		err = required(reqSt.CallSid)
-		url = url + "/Participants/" + reqSt.CallSid
-	case UpdateParticipant:
-		err = required(reqSt.CallSid)
-		url = url + "/Participants/" + reqSt.CallSid
-	case DeleteParticipant:
-		err = required(reqSt.CallSid)
-		url = url + "/Participants/" + reqSt.CallSid
 	}
+
 	return url, err
 }
 

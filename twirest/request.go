@@ -18,7 +18,7 @@ type Account struct {
 
 // Request list of calls made to and from account
 type Calls struct {
-	Resource        uri    `/Calls`
+	resource        uri    `/Calls`
 	To              string `To=`
 	From            string `From=`
 	Status          string `Status=`
@@ -30,7 +30,7 @@ type Calls struct {
 
 // Request call information about a single call
 type Call struct {
-	Resource      uri    `/Calls`
+	resource      uri    `/Calls`
 	Sid           string // CallSid
 	Recordings    bool
 	Notifications bool
@@ -38,7 +38,7 @@ type Call struct {
 
 // Request to make a phone call
 type MakeCall struct {
-	Resource             uri    `/Calls`
+	resource             uri    `/Calls`
 	From                 string `From=`
 	To                   string `To=`
 	Url                  string `Url=`
@@ -58,7 +58,7 @@ type MakeCall struct {
 
 // Request to modify call in queue/progress
 type ModifyCall struct {
-	Resource             uri `/Calls`
+	resource             uri `/Calls`
 	Sid                  string
 	Url                  string `Url=`
 	Method               string `Method=`
@@ -71,7 +71,7 @@ type ModifyCall struct {
 
 // List conferences within an account
 type Conferences struct {
-	Resource          uri    `/Conferences`
+	resource          uri    `/Conferences`
 	Status            string `Status=`
 	FriendlyName      string `FriendlyName=`
 	DateCreated       string `DateCreated=`
@@ -84,42 +84,46 @@ type Conferences struct {
 
 // Resource for individual conference instance
 type Conference struct {
-	Resource uri `/Conferences`
+	resource uri `/Conferences`
 	Sid      string
 }
 
 // Request list of participants in a conference
 type Participants struct {
-	Resource uri    `/Conferences`
-	Sid      string // Conference Sid
-	Muted    string `Muted=`
+	resource    uri    `/Conferences`
+	subresource uri    `/Participants`
+	Sid         string // Conference Sid
+	Muted       string `Muted=`
 }
 
 // Resource about single conference participant
 type Participant struct {
-	Resource uri    `/Conferences`
-	Sid      string // Conference Sid
-	CallSid  string
+	resource    uri    `/Conferences`
+	subresource uri    `/Participants`
+	Sid         string // Conference Sid
+	CallSid     string // required field
 }
 
 // Remove a participant from a conference
 type DeleteParticipant struct {
-	Resource uri    `/Conferences`
-	Sid      string // Conference Sid
-	CallSid  string
+	resource    uri    `/Conferences`
+	subresource uri    `/Participants`
+	Sid         string // Conference Sid
+	CallSid     string // required field
 }
 
 // Request to change the status of a participant
 type UpdateParticipant struct {
-	Resource uri    `/Conferences`
-	Sid      string // Conference Sid
-	CallSid  string
-	Muted    string `Muted=`
+	resource    uri    `/Conferences`
+	subresource uri    `/Participants`
+	Sid         string // Conference Sid
+	CallSid     string // required field
+	Muted       string `Muted=`
 }
 
 // Messages struct for request of list of messages
 type Messages struct {
-	Resource       uri    `/Messages`
+	resource       uri    `/Messages`
 	To             string `To=`
 	From           string `From=`
 	DateSent       string `DateSent=`
@@ -129,7 +133,7 @@ type Messages struct {
 
 // Message struct for request of single message
 type Message struct {
-	Resource uri    `/Messages`
+	resource uri    `/Messages`
 	Sid      string // MessageSid
 	Media    bool
 	MediaSid string
@@ -137,7 +141,7 @@ type Message struct {
 
 // Message struct for request to send a message
 type SendMessage struct {
-	Resource       uri    `/Messages`
+	resource       uri    `/Messages`
 	Text           string `Body=`
 	MediaUrl       string `MediaUrl=`
 	From           string `From=`
@@ -148,7 +152,7 @@ type SendMessage struct {
 
 // Notifications struct for request of a possible list of notifications
 type Notifications struct {
-	Resource      uri    `/Notifications`
+	resource      uri    `/Notifications`
 	Log           string `Log=`
 	MsgDate       string `MessageDate=`
 	MsgDateBefore string `MessageDate<=`
@@ -157,42 +161,42 @@ type Notifications struct {
 
 // Notification struct for request of a specific notification
 type Notification struct {
-	Resource uri `/Notifications`
+	resource uri `/Notifications`
 	Sid      string
 }
 
 // DeleteNotification struct for removal of a notification
 type DeleteNotification struct {
-	Resource uri `/Notifications`
+	resource uri `/Notifications`
 	Sid      string
 }
 
 // Get outgoing caller IDs
 type OutgoingCallerIds struct {
-	Resource     uri    `/OutgoingCallerIds`
+	resource     uri    `/OutgoingCallerIds`
 	PhoneNumber  string `PhoneNumber=`
 	FriendlyName string `FriendlyName=`
 }
 
 // Get outgoing caller ID
 type OutgoingCallerId struct {
-	Resource uri `/OutgoingCallerIds`
+	resource uri `/OutgoingCallerIds`
 	Sid      string
 }
 
 type UpdateOutgoingCallerId struct {
-	Resource     uri `/OutgoingCallerIds`
+	resource     uri `/OutgoingCallerIds`
 	Sid          string
 	FriendlyName string `FriendlyName=`
 }
 
 type DeleteOutgoingCallerId struct {
-	Resource uri `/OutgoingCallerIds`
+	resource uri `/OutgoingCallerIds`
 	Sid      string
 }
 
 type AddOutgoingCallerId struct {
-	Resource             uri    `/OutgoingCallerIds`
+	resource             uri    `/OutgoingCallerIds`
 	PhoneNumber          string `PhoneNumber=`
 	FriendlyName         string `FriendlyName=`
 	CallDelay            string `CallDelay=`
@@ -203,7 +207,7 @@ type AddOutgoingCallerId struct {
 
 // List recordings resource
 type Recordings struct {
-	Resource          uri    `/Recordings`
+	resource          uri    `/Recordings`
 	CallSid           string `CallSid=`
 	DateCreated       string `DateCreated=`
 	DateCreatedBefore string `DateCreated<=`
@@ -212,19 +216,19 @@ type Recordings struct {
 
 // Request resource for an individual recording
 type Recording struct {
-	Resource uri    `/Recordings`
+	resource uri    `/Recordings`
 	Sid      string // RecordingSid
 }
 
 // Delete a recording
 type DeleteRecording struct {
-	Resource uri    `/Recordings`
+	resource uri    `/Recordings`
 	Sid      string // RecordingSid
 }
 
 // Request usage by the account
 type UsageRecords struct {
-	Resource    uri `/Usage/Records`
+	resource    uri `/Usage/Records`
 	SubResource string
 	Category    string `Category=`
 	StartDate   string `StartDate=`
@@ -233,25 +237,25 @@ type UsageRecords struct {
 
 // List queues within an account
 type Queues struct {
-	Resource uri `/Queues`
+	resource uri `/Queues`
 }
 
 // Get resource for an individual Queue instance
 type Queue struct {
-	Resource uri    `/Queues`
+	resource uri    `/Queues`
 	Sid      string // QueueSid
 }
 
 // Create a new queue
 type CreateQueue struct {
-	Resource     uri    `/Queues`
+	resource     uri    `/Queues`
 	FriendlyName string `FriendlyName=`
 	MaxSize      string `MaxSize=`
 }
 
 // Request to change queue properties
 type ChangeQueue struct {
-	Resource     uri `/Queues`
+	resource     uri `/Queues`
 	Sid          string
 	FriendlyName string `FriendlyName=`
 	MaxSize      string `MaxSize=`
@@ -259,30 +263,33 @@ type ChangeQueue struct {
 
 // Remove a queue
 type DeleteQueue struct {
-	Resource uri    `/Queues`
+	resource uri    `/Queues`
 	Sid      string // QueueSid
 }
 
 // List members of a queue
 type QueueMembers struct {
-	Resource uri    `/Queues`
-	Sid      string // QueueSid
+	resource    uri    `/Queues`
+	subresource uri    `/Members`
+	Sid         string // QueueSid
 }
 
 // Request resource for a queue member
 type QueueMember struct {
-	Resource uri    `/Queues`
-	Sid      string // QueueSid
-	CallSid  string
-	Front    bool
+	resource    uri    `/Queues`
+	subresource uri    `/Members`
+	Sid         string // QueueSid
+	CallSid     string // either this field or Front is required
+	Front       bool
 }
 
 // Remove a member from a queue and redirect the member's call to a TwiML site
 type DeQueue struct {
-	Resource uri    `/Queues`
-	Sid      string // Queue Sid
-	CallSid  string
-	Front    bool
-	Url      string `Url=`
-	Method   string `Method=`
+	resource    uri    `/Queues`
+	subresource uri    `/Members`
+	Sid         string // Queue Sid
+	CallSid     string // either this field or Front is required
+	Front       bool
+	Url         string `Url=`
+	Method      string `Method=`
 }
