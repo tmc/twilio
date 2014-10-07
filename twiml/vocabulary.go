@@ -104,7 +104,7 @@ type Record struct {
 type Redirect struct {
 	XMLName xml.Name `xml:"Redirect"`
 	Method  string   `xml:"method,attr,omitempty"`
-	Url     string   `xml:"URL,omitempty"`
+	Url     string   `xml:",innerxml"`
 }
 
 type Reject struct {
