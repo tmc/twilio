@@ -41,8 +41,8 @@ type Enqueue struct {
 	XMLName       xml.Name `xml:"Enqueue"`
 	Action        string   `xml:"action,attr,omitempty"`
 	Method        string   `xml:"method,attr,omitempty"`
-	WaitUrl       string   `xml:"waiUrl,attr,omitempty"`
-	WaitUrlMethod string   `xml:"waiUrlMethod,attr,omitempty"`
+	WaitUrl       string   `xml:"waitUrl,attr,omitempty"`
+	WaitUrlMethod string   `xml:"waitUrlMethod,attr,omitempty"`
 	Name          string   `xml:",chardata"`
 }
 
