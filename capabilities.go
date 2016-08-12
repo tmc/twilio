@@ -16,7 +16,7 @@ var Clock = clockwork.NewRealClock()
 type Capabilities struct {
 	AccountSid          string // AccountSid is the Twilio Account Sid
 	AuthToken           string // AuthToken is the secret Twilio Account Auth Token
-	AllowClientIncoming string // AllowClientIncoming specifies the possible client name fthat can be adopted
+	AllowClientIncoming string // AllowClientIncoming specifies the possible client name that can be adopted
 	AllowClientOutgoing string // AllowClientOutgoing specifies that this token can make outgoing calls using the given Application Sid
 }
 
