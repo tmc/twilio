@@ -7,6 +7,10 @@ package twirest
 
 import (
 	"crypto/tls"
+
+	"golang.org/x/net/context"
+
+	"cloud.google.com/go/trace"
 	//"crypto/x509"
 	"encoding/xml"
 	"fmt"
@@ -62,6 +66,46 @@ func (twiClient *TwilioClient) Request(reqStruct interface{}) (
 	if err != nil {
 		return twiResp, err
 	}
+	// add authentication and headers to the http request
+	httpReq.SetBasicAuth(twiClient.accountSid, twiClient.authToken)
+	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	httpReq.Header.Set("Accept", "*/*")
+
+	response, err := twiClient.httpclient.Do(httpReq)
+	if err != nil {
+		return twiResp, err
+	}
+
+	// Save http status code to response struct
+	twiResp.Status.Http = response.StatusCode
+
+	body, _ := ioutil.ReadAll(response.Body)
+	response.Body.Close()
+
+	// parse xml response into twilioResponse struct
+	xml.Unmarshal(body, &twiResp)
+
+	twiResp.Status.Twilio, err = exceptionToErr(twiResp)
+	return twiResp, err
+}
+
+// RequestWithContext makes a REST resource or action request from twilio servers and
+// returns the response. The type of request is determined by the request
+// struct supplied.
+func (twiClient *TwilioClient) RequestWithContext(ctx context.Context, reqStruct interface{}) (
+	TwilioResponse, error) {
+	span := trace.FromContext(ctx)
+	defer span.Finish()
+
+	twiResp := TwilioResponse{}
+
+	// setup a POST/GET/DELETE http request from request struct
+	httpReq, err := httpRequest(reqStruct, twiClient.accountSid)
+	if err != nil {
+		return twiResp, err
+	}
+	child := span.NewRemoteChild(httpReq)
+	defer child.Finish()
 	// add authentication and headers to the http request
 	httpReq.SetBasicAuth(twiClient.accountSid, twiClient.authToken)
 	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
