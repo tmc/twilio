@@ -94,7 +94,7 @@ func (twiClient *TwilioClient) Request(reqStruct interface{}) (
 // struct supplied.
 func (twiClient *TwilioClient) RequestWithContext(ctx context.Context, reqStruct interface{}) (
 	TwilioResponse, error) {
-	span := trace.FromContext(ctx)
+	span := trace.FromContext(ctx).NewChild("twirest.RequestWithContext")
 	defer span.Finish()
 
 	twiResp := TwilioResponse{}
