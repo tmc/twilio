@@ -5,11 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coreos/go-oidc/jose"
+	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
+
 	"github.com/jonboulle/clockwork"
 )
 
-// Clock provides time for calculating expiry times in tokesn.
+// Clock provides time for calculating expiry times in tokens.
 var Clock = clockwork.NewRealClock()
 
 // Capabilities describes the possible capabilities for a Twilio token.
@@ -23,11 +25,16 @@ type Capabilities struct {
 // Generate creates a Capabilities Token given some configuration values.
 // See https://www.twilio.com/docs/api/client/capability-tokens for details.
 func Generate(c Capabilities, expires time.Duration) (string, error) {
-	signer := jose.NewSignerHMAC("", []byte(c.AuthToken))
-	claims := jose.Claims{}
+	sig, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.HS256, Key: []byte(c.AuthToken)}, (&jose.SignerOptions{}).WithType("JWT"))
+	if err != nil {
+		return "", err
+	}
 
-	claims.Add("iss", c.AccountSid)
-	claims.Add("exp", Clock.Now().Add(expires).Unix())
+	cl := jwt.Claims{
+		Issuer: c.AccountSid,
+		Expiry: jwt.NewNumericDate(Clock.Now().Add(expires)),
+	}
+
 	scopes := []string{}
 	if c.AllowClientOutgoing != "" {
 		scope := fmt.Sprintf("scope:client:outgoing?appSid=%s", c.AllowClientOutgoing)
@@ -39,11 +46,8 @@ func Generate(c Capabilities, expires time.Duration) (string, error) {
 	if c.AllowClientIncoming != "" {
 		scopes = append(scopes, fmt.Sprintf("scope:client:incoming?clientName=%s", c.AllowClientIncoming))
 	}
-	claims.Add("scope", strings.Join(scopes, " "))
-
-	jwt, err := jose.NewSignedJWT(claims, signer)
-	if err != nil {
-		return "", err
-	}
-	return jwt.Encode(), nil
+	//return jwt.Signed(sig).Claims(cl).CompactSerialize()
+	return jwt.Signed(sig).Claims(cl).Claims(map[string]interface{}{
+		"scope": strings.Join(scopes, " "),
+	}).CompactSerialize()
 }
